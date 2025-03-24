@@ -25,11 +25,11 @@ class HandTracker:
                     pixel_x = int(landmark.x * frame_width)
                     pixel_y = int(landmark.y * frame_height)
                     
-                    if id in [4, 8, 12]:
+                    if id in [4, 8, 12, 16]:
                         landmarks_dict[id] = (pixel_x, pixel_y)
 
         return landmarks_dict, frame, results
     
 
     def distance(self, p1, p2):
-        return math.sqrt((p1[0]-p2[0]) ** 2 + (p1[1]-p[2]) ** 2)
+        return math.sqrt((p1[0]-p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
