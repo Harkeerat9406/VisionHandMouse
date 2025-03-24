@@ -15,6 +15,7 @@ if not cap.isOpened():
     exit(0)
 
 tracker= HandTracker()
+prev_wrist_y = None
 
 while cap.isOpened():
     ret, frame= cap.read()
@@ -22,37 +23,54 @@ while cap.isOpened():
         break
 
     landmarks_dict, frame, results = tracker.find_hands(frame)
-    
+
     #CURSOR MOVEMENT
     if 8 in landmarks_dict:
         frame_x, frame_y= landmarks_dict[8]
         frame_height, frame_width, _ = frame.shape
-        screen_x= screen_width - (frame_x / frame_width) * screen_width 
-        screen_y=  (frame_y / frame_height) * screen_height 
+        screen_x= screen_width - (frame_x / frame_width) * screen_width * 1.3
+        screen_y=  (frame_y / frame_height) * screen_height *1.3 
         pyautogui.moveTo(screen_x, screen_y)
 
     #LEFT CLICK
     if 4 in landmarks_dict and 12 in landmarks_dict:
         thumb_middle_dist = tracker.distance(landmarks_dict[12], landmarks_dict[4])
-        if previous_finger_state["left_click"] == False and thumb_middle_dist < 40:
+        if previous_finger_state["left_click"] == False and thumb_middle_dist < 30:
             pyautogui.click()
             previous_finger_state["left_click"] = True
         
-        if thumb_middle_dist >= 40 and previous_finger_state["left_click"]== True:
+        if thumb_middle_dist >= 30 and previous_finger_state["left_click"]== True:
             previous_finger_state["left_click"] = False
 
     
     #RIGHT CLICK
     if 4 in landmarks_dict and 16 in landmarks_dict:
         thumb_ring_dist = tracker.distance(landmarks_dict[16], landmarks_dict[4])
-        if previous_finger_state["right_click"]== False and thumb_ring_dist < 40:
+        if previous_finger_state["right_click"]== False and thumb_ring_dist < 20:
             pyautogui.rightClick()
             previous_finger_state["right_click"] = True
         
-        if thumb_ring_dist>=40 and previous_finger_state["right_click"] == True:
+        if thumb_ring_dist>=20 and previous_finger_state["right_click"] == True:
             previous_finger_state["right_click"] = False
+
     
-    
+    #ZOOM IN/OUT
+    if 4 in landmarks_dict and 9 in landmarks_dict and 0 in landmarks_dict:
+        
+        wrist_y = landmarks_dict[0][1]
+        
+        if prev_wrist_y is not None:                      #Ensure its not the first frame
+            thumb_pinky_dist = tracker.distance(landmarks_dict[4], landmarks_dict[9])
+
+            if thumb_pinky_dist < 40:
+                delta_y = wrist_y - prev_wrist_y
+                if delta_y > 30:
+                    pyautogui.scroll(150)
+                elif delta_y <-30:
+                    pyautogui.scroll(-150)
+        
+        prev_wrist_y = wrist_y
+
 
 
     cv2.namedWindow("Hand Window", cv2.WINDOW_NORMAL)  # Allows window resizing

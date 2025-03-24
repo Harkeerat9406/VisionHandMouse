@@ -25,7 +25,7 @@ class HandTracker:
                     pixel_x = int(landmark.x * frame_width)
                     pixel_y = int(landmark.y * frame_height)
                     
-                    if id in [4, 8, 12, 16]:
+                    if id in [0, 4, 8, 9, 12, 16]:
                         landmarks_dict[id] = (pixel_x, pixel_y)
 
         return landmarks_dict, frame, results
