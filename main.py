@@ -15,7 +15,9 @@ if not cap.isOpened():
     exit(0)
 
 tracker= HandTracker()
+
 prev_wrist_y = None
+fist_closed = False
 
 while cap.isOpened():
     ret, frame= cap.read()
@@ -24,6 +26,7 @@ while cap.isOpened():
 
     landmarks_dict, frame, results = tracker.find_hands(frame)
 
+
     #CURSOR MOVEMENT
     if 8 in landmarks_dict:
         frame_x, frame_y= landmarks_dict[8]
@@ -31,6 +34,9 @@ while cap.isOpened():
         screen_x= screen_width - (frame_x / frame_width) * screen_width * 1.3
         screen_y=  (frame_y / frame_height) * screen_height *1.3 
         pyautogui.moveTo(screen_x, screen_y)
+
+
+
 
     #LEFT CLICK
     if 4 in landmarks_dict and 12 in landmarks_dict:
@@ -42,7 +48,9 @@ while cap.isOpened():
         if thumb_middle_dist >= 30 and previous_finger_state["left_click"]== True:
             previous_finger_state["left_click"] = False
 
-    
+
+
+
     #RIGHT CLICK
     if 4 in landmarks_dict and 16 in landmarks_dict:
         thumb_ring_dist = tracker.distance(landmarks_dict[16], landmarks_dict[4])
@@ -53,14 +61,16 @@ while cap.isOpened():
         if thumb_ring_dist>=20 and previous_finger_state["right_click"] == True:
             previous_finger_state["right_click"] = False
 
-    
+
+
+
     #ZOOM IN/OUT
-    if 4 in landmarks_dict and 9 in landmarks_dict and 0 in landmarks_dict:
+    if 4 in landmarks_dict and 17 in landmarks_dict and 0 in landmarks_dict:
         
         wrist_y = landmarks_dict[0][1]
         
         if prev_wrist_y is not None:                      #Ensure its not the first frame
-            thumb_pinky_dist = tracker.distance(landmarks_dict[4], landmarks_dict[9])
+            thumb_pinky_dist = tracker.distance(landmarks_dict[4], landmarks_dict[17])
 
             if thumb_pinky_dist < 40:
                 delta_y = wrist_y - prev_wrist_y
@@ -71,6 +81,28 @@ while cap.isOpened():
         
         prev_wrist_y = wrist_y
 
+
+
+
+    #SHOW DESKTOP
+    if all(finger in landmarks_dict for finger in [0, 4, 8, 12, 16, 20]):
+        wrist = landmarks_dict[0]
+        fingertips = [landmarks_dict[4], landmarks_dict[8], landmarks_dict[12], landmarks_dict[16], landmarks_dict[20]]
+
+        avg_distance = sum(tracker.distance(wrist, finger) for finger in fingertips)/ len(fingertips)
+
+        if avg_distance < 100 and not fist_closed:
+            # pyautogui.hotkey("winleft", "D")
+            pyautogui.keyDown("win")
+            pyautogui.press("d")
+            pyautogui.keyUp("win")
+            fist_closed = True
+        
+        if avg_distance >= 100 and fist_closed:
+            pyautogui.keyDown("win")
+            pyautogui.press("d")
+            pyautogui.keyUp("win")
+            fist_closed = False
 
 
     cv2.namedWindow("Hand Window", cv2.WINDOW_NORMAL)  # Allows window resizing
