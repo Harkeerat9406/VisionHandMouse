@@ -33,3 +33,29 @@ class HandTracker:
 
     def distance(self, p1, p2):
         return math.sqrt((p1[0]-p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
+    
+
+    def palm_orientation(self, landmarks_dict):
+        wrist_x, wrist_y = landmarks_dict[0]
+        index_x, index_y = landmarks_dict[8]
+        pinky_x, pinky_y = landmarks_dict[20]
+
+        horizontal_diff = abs(pinky_x - index_x)
+        # if horizontal_diff > 70:  # Hand is rotated
+        #     return 'switch_app'
+        if horizontal_diff > 30:
+            return 'switch_tab'
+        return None
+
+
+
+    def detect_rotation(self, landmarks_dict):
+        wrist_x = landmarks_dict[0][0]
+        fingertips_x = [landmarks_dict[i][0] for i in [4, 8, 12, 16, 20]]
+        avg_fingertips_x = sum(fingertips_x)/len(fingertips_x)
+
+        if avg_fingertips_x < wrist_x - 30:
+            return 'right'                          #because webcam view is inverted
+        elif avg_fingertips_x > wrist_x + 30:
+            return 'left' 
+        return 'upright'

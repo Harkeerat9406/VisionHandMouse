@@ -7,8 +7,6 @@ import pyautogui
 cap = cv2.VideoCapture(0)
 
 screen_width, screen_height= pyautogui.size()
-previous_finger_state= {"left_click": False, "right_click": False}
-
 
 if not cap.isOpened():
     print("Cannot Open Webcam!!")
@@ -18,6 +16,9 @@ tracker= HandTracker()
 
 prev_wrist_y = None
 fist_closed = False
+previous_finger_state= {"left_click": False, "right_click": False}
+ready_for_gesture = True
+ready_for_gesture = True
 
 while cap.isOpened():
     ret, frame= cap.read()
@@ -99,10 +100,52 @@ while cap.isOpened():
             fist_closed = True
         
         if avg_distance >= 100 and fist_closed:
-            pyautogui.keyDown("win")
-            pyautogui.press("d")
-            pyautogui.keyUp("win")
             fist_closed = False
+
+
+
+
+    #SWITCH APPLICATIONS/TABS
+    if all(finger in landmarks_dict for finger in [0, 4, 8, 12, 16, 20]):
+        gesture_orientation = tracker.palm_orientation(landmarks_dict)
+        
+        #SWITCH APPLICATION
+        # if gesture_orientation == 'switch_app':
+        #     rotation_side = tracker.detect_rotation(landmarks_dict)
+
+        #     if rotation_side == 'left' and ready_for_gesture:
+        #         pyautogui.keyDown('alt')
+        #         pyautogui.press('tab')
+        #         pyautogui.press('left')
+        #         pyautogui.press('left')
+        #         pyautogui.keyUp('alt')
+        #         ready_for_gesture = False
+
+        #     elif rotation_side == 'right' and ready_for_gesture:
+        #         pyautogui.keyDown('alt')
+        #         pyautogui.press('tab')
+        #         pyautogui.keyUp('alt')
+        #         ready_for_gesture = False
+            
+        #     elif rotation_side == 'upright' and not ready_for_gesture:
+        #         ready_for_gesture = True
+
+        # NOTES: switching application window isnt functioning properly, it will be added later so for now we will keep detecting orientation of hand
+
+        
+        if gesture_orientation == 'switch_tab':
+            rotation_side = tracker.detect_rotation(landmarks_dict)
+            if rotation_side == 'left' and ready_for_gesture:
+                pyautogui.hotkey('ctrl', 'shift', 'tab')
+                ready_for_gesture = False
+            
+            elif rotation_side == 'right' and ready_for_gesture:
+                pyautogui.hotkey('ctrl', 'tab')
+                ready_for_gesture = False
+            
+            elif rotation_side == 'upright' and not ready_for_gesture:
+                ready_for_gesture = True
+
 
 
     cv2.namedWindow("Hand Window", cv2.WINDOW_NORMAL)  # Allows window resizing
@@ -111,6 +154,7 @@ while cap.isOpened():
     
 
     if cv2.waitKey(1) == ord('q'):
+        cv2.setWindowProperty("Hand Window", cv2.WND_PROP_TOPMOST, 0)  # Remove always-on-top
         break
 
 cap.release()
