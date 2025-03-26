@@ -1,1 +1,0 @@
-# Defines gestures (e.g., moving the cursor, clicking, scrolling, zooming).

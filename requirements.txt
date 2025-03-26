@@ -1,2 +1,0 @@
-# Keeps track of dependencies (opencv-python, mediapipe, pyautogui, numpy)
-
